@@ -1,6 +1,6 @@
 # 업무 첫걸음
 
-[서비스 바로가기](https://work-first-step.wodnrtkfka763476.chatgpt.site) · [GitHub 저장소](https://github.com/naraspc/work-first-step)
+[GitHub Pages 서비스 주소](https://naraspc.github.io/work-first-step/) · [GitHub 저장소](https://github.com/naraspc/work-first-step)
 
 받은 업무를 정리하고, 확인할 내용과 먼저 할 일을 찾아보는 무료 업무지시 정의서 도구입니다.
 
@@ -52,7 +52,7 @@ HTML, CSS, JavaScript, Web Storage, Blob 기반 다운로드를 사용합니다.
 
 ## 배포
 
-`dist/`를 정적 호스팅에 배포합니다. 현재 서비스는 별도 정적 호스팅으로 공개되어 있습니다. 이 저장소는 소스와 문서를 관리하며, push가 현재 서비스에 자동 배포되지는 않습니다. 유지보수 방법은 [저장소 운영 안내](docs/GITHUB.md)에 정리했습니다.
+GitHub Pages에 `dist/`를 배포하도록 `.github/workflows/pages.yml`을 구성했습니다. 저장소 Settings → Pages → Source에서 GitHub Actions를 선택한 뒤 배포 워크플로를 실행해야 처음 활성화됩니다. 활성화 후에는 `main`에 push할 때 검사 6개가 통과하면 자동 배포됩니다. 배포 성공 여부는 저장소 Actions에서 확인하세요. 유지보수 방법은 [저장소 운영 안내](docs/GITHUB.md)에 정리했습니다.
 
 ## 참고
 
