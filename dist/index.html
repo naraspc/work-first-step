@@ -12,8 +12,8 @@
 <footer>작성 원칙 참고: <a href="https://www.atlassian.com/agile/product-management/requirements/" target="_blank" rel="noreferrer">Atlassian · PRD</a> / <a href="https://www.nasa.gov/reference/appendix-c-how-to-write-a-good-requirement/" target="_blank" rel="noreferrer">NASA · 명확한 요구사항 작성</a><br>목적·할 일·지킬 사항·확인 질문으로 쉽게 풀어 썼습니다. 직종별 예시는 작성법을 보여주기 위한 가상의 상황입니다.</footer>
 </main><script>
 'use strict';
-const meta=[['title','업무명'],['requester','지시자 / 검토자'],['date','작성일 / 버전'],['reference','참고 자료 / 업무를 받은 경로']];
-const fields=[
+const metadataFields = [['title','업무명'],['requester','지시자 / 검토자'],['date','작성일 / 버전'],['reference','참고 자료 / 업무를 받은 경로']];
+const worksheetFields = [
   [
     "purpose",
     "1. 이 업무의 목적은 무엇인가요?",
@@ -63,27 +63,275 @@ const fields=[
     "변경 없음\n추가 지시를 받으면: 날짜 / 변경 전 → 변경 후 / 지시한 사람 / 수정할 작업"
   ]
 ];
-const checks=["업무의 목적과 담당 범위를 정리했다.", "지켜야 할 사항과 구체적인 할 일을 구분했다.", "제출할 것·기한·완료 기준·검토자를 적거나 확인 질문으로 남겼다.", "받은 지시와 내 생각·작업 계획을 구분했다.", "먼저 할 일과 중간 확인 시점을 정했다."];
-const $=id=>document.getElementById(id), key='work-first-step-v1';
-for(const [id,label] of meta){const wrap=document.createElement('label');wrap.textContent=label;const input=document.createElement('input');input.id=id;input.maxLength=500;wrap.append(input);$('meta').append(wrap);}
-for(const [id,label,hint,placeholder] of fields){const s=document.createElement('section');s.className='card';const l=document.createElement('label');l.htmlFor=id;l.textContent=label;const p=document.createElement('p');p.className='hint';p.id=id+'Hint';p.textContent=hint;const t=document.createElement('textarea');t.id=id;t.placeholder=placeholder;t.maxLength=20000;t.setAttribute('aria-describedby',p.id);s.append(l,p,t);$('fields').append(s);}
-checks.forEach((text,i)=>{const label=document.createElement('label');label.className='check';const input=document.createElement('input');input.type='checkbox';input.id='check'+i;label.append(input,document.createTextNode(text));$('checks').append(label);});
-const ids=[...meta,...fields].map(x=>x[0]);let dirty=false;
-function collect(){return{format:'work-first-step',version:2,values:Object.fromEntries(ids.map(id=>[id,$(id).value])),checks:checks.map((_,i)=>$('check'+i).checked)};}
-function valid(d){return d&&['work-first-step','design-work-practice'].includes(d.format)&&[1,2].includes(d.version)&&d.values&&ids.every(id=>typeof d.values[id]==='string'&&d.values[id].length<=20000)&&Array.isArray(d.checks)&&d.checks.length===checks.length&&d.checks.every(x=>typeof x==='boolean');}
-function fill(d){if(d.version===1){d=JSON.parse(JSON.stringify(d));if(d.values.flex.trim()){d.values.unknown += '\n\n[이전 양식의 변경 가능 항목 · 다시 확인할 내용]\n'+d.values.flex;}d.values.flex='';d.checks=d.checks.map(()=>false);}ids.forEach(id=>$(id).value=d.values[id]);d.checks.forEach((v,i)=>$('check'+i).checked=v);}
-function say(s){$('status').textContent=s;}
-function cache(){try{localStorage.setItem(key,JSON.stringify(collect()));say('이 브라우저에 임시저장했습니다. 마칠 때 파일로 저장해 주세요.');}catch(e){say('자동 임시저장을 사용할 수 없습니다. 저장 버튼으로 파일을 내려받아 주세요.');}}
-try{const d=JSON.parse(localStorage.getItem(key)||'null');if(valid(d)){fill(d);say(d.version===1?'이전 내용을 복원했습니다. 이전 양식의 4번 내용은 6번으로 옮겼습니다. 새 4번에 할 일을 적어 주세요.':'이전에 임시저장한 내용을 복원했습니다.');}else say('아직 작성한 내용이 없습니다. 첫 칸부터 시작하세요.');}catch(e){say('자동 임시저장을 사용할 수 없습니다. 파일 저장 기능을 사용하세요.');}
-$('worksheet').addEventListener('input',()=>{dirty=true;cache();});
-$('worksheet').addEventListener('submit',e=>e.preventDefault());
-function filename(ext){const name=($('title').value.trim()||'업무_요구사항').replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').slice(0,70);const d=new Date();return name+'_'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'.'+ext;}
-function download(content,type,ext){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=filename(ext);document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);say('다운로드를 요청했습니다. 브라우저의 다운로드 목록에서 파일을 확인하세요.');}
-function textReport(){const d=collect();return '업무 첫걸음 · 업무지시 정의서\r\n\r\n'+[...meta,...fields].map(([id,label])=>label+'\r\n'+(d.values[id].trim()||'(미작성)')).join('\r\n\r\n')+'\r\n\r\n자체 점검\r\n'+checks.map((s,i)=>(d.checks[i]?'[v] ':'[ ] ')+s).join('\r\n');}
-$('exportTxt').onclick=()=>download('\uFEFF'+textReport(),'text/plain;charset=utf-8','txt');
-$('exportJson').onclick=()=>{download(JSON.stringify(collect(),null,2),'application/json;charset=utf-8','json');dirty=false;};
-$('importBtn').onclick=()=>$('importFile').click();
-$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.size>2000000)throw Error();const d=JSON.parse(await f.text());if(!valid(d))throw Error();if((ids.some(id=>$(id).value.trim())||checks.some((_,i)=>$('check'+i).checked))&&!confirm('불러온 내용으로 현재 작성 내용을 바꿀까요? 필요한 내용은 먼저 파일로 저장하세요.'))return;fill(d);dirty=false;cache();say(d.version===1?'이전 양식의 파일을 불러왔습니다. 4번 내용은 6번으로 옮겼습니다. 새 4번에 할 일을 적어 주세요.':'이어쓰기 파일을 불러왔습니다. 계속 작성하세요.');}catch(err){say('불러오지 못했습니다. 이 연습장에서 저장한 이어쓰기 파일(.json)을 선택해 주세요. 현재 내용은 유지됩니다.');}finally{e.target.value='';}};
-$('reset').onclick=()=>{if(!confirm('현재 내용을 비우고 새 업무를 시작할까요? 필요한 내용은 먼저 저장하세요.'))return;ids.forEach(id=>$(id).value='');checks.forEach((_,i)=>$('check'+i).checked=false);dirty=false;cache();say('새 업무를 시작할 준비가 됐습니다.');};
-window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
+const reviewChecklist = ["업무의 목적과 담당 범위를 정리했다.", "지켜야 할 사항과 구체적인 할 일을 구분했다.", "제출할 것·기한·완료 기준·검토자를 적거나 확인 질문으로 남겼다.", "받은 지시와 내 생각·작업 계획을 구분했다.", "먼저 할 일과 중간 확인 시점을 정했다."];
+// 저장 키와 필드 ID는 기존 브라우저 데이터와 백업 파일의 호환성을 위해 유지합니다.
+const DRAFT_STORAGE_KEY = 'work-first-step-v1';
+const BACKUP_FORMAT = 'work-first-step';
+const BACKUP_VERSION = 2;
+const MAX_IMPORT_FILE_SIZE = 2000000;
+const formFieldIds = [...metadataFields, ...worksheetFields].map(([id]) => id);
+let hasUnexportedChanges = false;
+
+function getElementById(id) {
+    return document.getElementById(id);
+}
+
+function renderMetadataFields() {
+    for (const [id, title] of metadataFields) {
+        const label = document.createElement('label');
+        label.textContent = title;
+
+        const input = document.createElement('input');
+        input.id = id;
+        input.maxLength = 500;
+
+        label.append(input);
+        getElementById('meta').append(label);
+    }
+}
+
+function renderWorksheetFields() {
+    for (const [id, title, description, placeholder] of worksheetFields) {
+        const section = document.createElement('section');
+        section.className = 'card';
+
+        const label = document.createElement('label');
+        label.htmlFor = id;
+        label.textContent = title;
+
+        const hint = document.createElement('p');
+        hint.className = 'hint';
+        hint.id = id + 'Hint';
+        hint.textContent = description;
+
+        const textarea = document.createElement('textarea');
+        textarea.id = id;
+        textarea.placeholder = placeholder;
+        textarea.maxLength = 20000;
+        textarea.setAttribute('aria-describedby', hint.id);
+
+        section.append(label, hint, textarea);
+        getElementById('fields').append(section);
+    }
+}
+
+function renderReviewChecklist() {
+    reviewChecklist.forEach((text, index) => {
+        const label = document.createElement('label');
+        label.className = 'check';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = 'check' + index;
+
+        label.append(checkbox, document.createTextNode(text));
+        getElementById('checks').append(label);
+    });
+}
+
+function collectWorksheetData() {
+    const values = Object.fromEntries(
+        formFieldIds.map(id => [id, getElementById(id).value])
+    );
+    const checks = reviewChecklist.map((_, index) => getElementById('check' + index).checked);
+    return { format: BACKUP_FORMAT, version: BACKUP_VERSION, values, checks };
+}
+
+function isValidWorksheetBackup(data) {
+    if (!data || !['work-first-step', 'design-work-practice'].includes(data.format)) {
+        return false;
+    }
+    if (![1, BACKUP_VERSION].includes(data.version) || !data.values) {
+        return false;
+    }
+
+    const hasValidValues = formFieldIds.every(id =>
+        typeof data.values[id] === 'string' && data.values[id].length <= 20000
+    );
+    const hasValidChecks = Array.isArray(data.checks)
+        && data.checks.length === reviewChecklist.length
+        && data.checks.every(checked => typeof checked === 'boolean');
+    return hasValidValues && hasValidChecks;
+}
+
+function migrateWorksheetBackup(data) {
+    if (data.version !== 1) return data;
+
+    // 이전 4번은 '변경 가능 범위'였으므로 새 할 일로 해석하지 않고 확인 질문으로 옮깁니다.
+    const migratedData = JSON.parse(JSON.stringify(data));
+    if (migratedData.values.flex.trim()) {
+        migratedData.values.unknown += '\n\n[이전 양식의 변경 가능 항목 · 다시 확인할 내용]\n'
+            + migratedData.values.flex;
+    }
+    migratedData.values.flex = '';
+    migratedData.checks = migratedData.checks.map(() => false);
+    return migratedData;
+}
+
+function fillWorksheetForm(data) {
+    const worksheetData = migrateWorksheetBackup(data);
+    formFieldIds.forEach(id => getElementById(id).value = worksheetData.values[id]);
+    worksheetData.checks.forEach((checked, index) => {
+        getElementById('check' + index).checked = checked;
+    });
+}
+
+function showStatusMessage(message) {
+    getElementById('status').textContent = message;
+}
+
+function saveDraftToBrowser() {
+    try {
+        const worksheetData = collectWorksheetData();
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(worksheetData));
+        showStatusMessage('이 브라우저에 임시저장했습니다. 마칠 때 파일로 저장해 주세요.');
+    } catch (error) {
+        showStatusMessage('자동 임시저장을 사용할 수 없습니다. 저장 버튼으로 파일을 내려받아 주세요.');
+    }
+}
+
+function restoreDraftFromBrowser() {
+    try {
+        const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
+        const worksheetData = JSON.parse(savedDraft || 'null');
+        if (!isValidWorksheetBackup(worksheetData)) {
+            showStatusMessage('아직 작성한 내용이 없습니다. 첫 칸부터 시작하세요.');
+            return;
+        }
+
+        fillWorksheetForm(worksheetData);
+        showStatusMessage(worksheetData.version === 1
+            ? '이전 내용을 복원했습니다. 이전 양식의 4번 내용은 6번으로 옮겼습니다. 새 4번에 할 일을 적어 주세요.'
+            : '이전에 임시저장한 내용을 복원했습니다.');
+    } catch (error) {
+        showStatusMessage('자동 임시저장을 사용할 수 없습니다. 파일 저장 기능을 사용하세요.');
+    }
+}
+
+function createDownloadFilename(extension) {
+    const title = getElementById('title').value.trim() || '업무_요구사항';
+    const safeTitle = title.replace(/[\\/:*?"<>|\x00-\x1f]/g, '_').slice(0, 70);
+    const today = new Date();
+    const date = today.getFullYear()
+        + String(today.getMonth() + 1).padStart(2, '0')
+        + String(today.getDate()).padStart(2, '0');
+    return safeTitle + '_' + date + '.' + extension;
+}
+
+function downloadWorksheetFile(content, contentType, extension) {
+    const file = new Blob([content], { type: contentType });
+    const downloadUrl = URL.createObjectURL(file);
+    const downloadLink = document.createElement('a');
+    downloadLink.href = downloadUrl;
+    downloadLink.download = createDownloadFilename(extension);
+    document.body.append(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 10000);
+    showStatusMessage('다운로드를 요청했습니다. 브라우저의 다운로드 목록에서 파일을 확인하세요.');
+}
+
+function createWorksheetTextReport() {
+    const worksheetData = collectWorksheetData();
+    const answers = [...metadataFields, ...worksheetFields].map(([id, title]) =>
+        title + '\r\n' + (worksheetData.values[id].trim() || '(미작성)')
+    );
+    const reviewResults = reviewChecklist.map((text, index) =>
+        (worksheetData.checks[index] ? '[v] ' : '[ ] ') + text
+    );
+    return '업무 첫걸음 · 업무지시 정의서\r\n\r\n'
+        + answers.join('\r\n\r\n')
+        + '\r\n\r\n자체 점검\r\n'
+        + reviewResults.join('\r\n');
+}
+
+function exportWorksheetAsText() {
+    downloadWorksheetFile('\uFEFF' + createWorksheetTextReport(), 'text/plain;charset=utf-8', 'txt');
+}
+
+function exportWorksheetBackup() {
+    const backupContent = JSON.stringify(collectWorksheetData(), null, 2);
+    downloadWorksheetFile(backupContent, 'application/json;charset=utf-8', 'json');
+    hasUnexportedChanges = false;
+}
+
+function hasWorksheetContent() {
+    return formFieldIds.some(id => getElementById(id).value.trim())
+        || reviewChecklist.some((_, index) => getElementById('check' + index).checked);
+}
+
+async function readWorksheetBackupFile(file) {
+    if (file.size > MAX_IMPORT_FILE_SIZE) throw new Error('백업 파일이 너무 큽니다.');
+    const worksheetData = JSON.parse(await file.text());
+    if (!isValidWorksheetBackup(worksheetData)) throw new Error('백업 형식이 올바르지 않습니다.');
+    return worksheetData;
+}
+
+async function importWorksheetBackup(event) {
+    const fileInput = event.target;
+    const selectedFile = fileInput.files[0];
+    if (!selectedFile) return;
+
+    try {
+        // 검증과 사용자 확인을 마친 뒤에만 현재 입력 내용을 교체합니다.
+        const worksheetData = await readWorksheetBackupFile(selectedFile);
+        if (hasWorksheetContent()
+            && !confirm('불러온 내용으로 현재 작성 내용을 바꿀까요? 필요한 내용은 먼저 파일로 저장하세요.')) {
+            return;
+        }
+
+        fillWorksheetForm(worksheetData);
+        hasUnexportedChanges = false;
+        saveDraftToBrowser();
+        showStatusMessage(worksheetData.version === 1
+            ? '이전 양식의 파일을 불러왔습니다. 4번 내용은 6번으로 옮겼습니다. 새 4번에 할 일을 적어 주세요.'
+            : '이어쓰기 파일을 불러왔습니다. 계속 작성하세요.');
+    } catch (error) {
+        showStatusMessage('불러오지 못했습니다. 이 연습장에서 저장한 이어쓰기 파일(.json)을 선택해 주세요. 현재 내용은 유지됩니다.');
+    } finally {
+        fileInput.value = '';
+    }
+}
+
+function resetWorksheetForm() {
+    if (!confirm('현재 내용을 비우고 새 업무를 시작할까요? 필요한 내용은 먼저 저장하세요.')) return;
+
+    formFieldIds.forEach(id => getElementById(id).value = '');
+    reviewChecklist.forEach((_, index) => getElementById('check' + index).checked = false);
+    hasUnexportedChanges = false;
+    saveDraftToBrowser();
+    showStatusMessage('새 업무를 시작할 준비가 됐습니다.');
+}
+
+function saveWorksheetChanges() {
+    hasUnexportedChanges = true;
+    saveDraftToBrowser();
+}
+
+function warnBeforeLeavingWorksheet(event) {
+    if (!hasUnexportedChanges) return;
+    event.preventDefault();
+    event.returnValue = '';
+}
+
+function bindWorksheetEvents() {
+    getElementById('worksheet').addEventListener('input', saveWorksheetChanges);
+    getElementById('worksheet').addEventListener('submit', event => event.preventDefault());
+    getElementById('exportTxt').onclick = exportWorksheetAsText;
+    getElementById('exportJson').onclick = exportWorksheetBackup;
+    getElementById('importBtn').onclick = () => getElementById('importFile').click();
+    getElementById('importFile').onchange = importWorksheetBackup;
+    getElementById('reset').onclick = resetWorksheetForm;
+    window.addEventListener('beforeunload', warnBeforeLeavingWorksheet);
+}
+
+function initializeWorksheet() {
+    renderMetadataFields();
+    renderWorksheetFields();
+    renderReviewChecklist();
+    restoreDraftFromBrowser();
+    bindWorksheetEvents();
+}
+
+initializeWorksheet();
 </script></body></html>
