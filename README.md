@@ -52,7 +52,7 @@ HTML, CSS, JavaScript, Web Storage, Blob 기반 다운로드를 사용합니다.
 
 ## 배포
 
-GitHub Pages에 `dist/`를 배포하도록 `.github/workflows/pages.yml`을 구성했습니다. 저장소 Settings → Pages → Source에서 GitHub Actions를 선택한 뒤 배포 워크플로를 실행해야 처음 활성화됩니다. 활성화 후에는 `main`에 push할 때 검사 6개가 통과하면 자동 배포됩니다. 배포 성공 여부는 저장소 Actions에서 확인하세요. 유지보수 방법은 [저장소 운영 안내](docs/GITHUB.md)에 정리했습니다.
+GitHub Pages에 `dist/`를 배포하도록 `.github/workflows/pages.yml`을 구성했습니다. 저장소 Settings → Pages → Source에서 GitHub Actions를 선택한 뒤 배포 워크플로를 실행해야 처음 활성화됩니다. 활성화 후에는 `main`에 push할 때 자동 검사가 통과하면 자동 배포됩니다. 배포 성공 여부는 저장소 Actions에서 확인하세요. 유지보수 방법은 [저장소 운영 안내](docs/GITHUB.md)에 정리했습니다.
 
 ## 참고
 
